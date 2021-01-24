@@ -1,5 +1,6 @@
 import sys
 import requests
+import json
 
 
 class WorkloadParser:
@@ -9,14 +10,32 @@ class WorkloadParser:
         self.commandList = command_list  # (cmd, args)
         self.ip = ip
         self.port = port
-        self.host = f'http://{self.ip}:{self.port}'
+        self.host = f'http://{self.ip}:{self.port}/stock-trade'
+        self.accessTokens = {}  # userid: token
 
     def run(self):
         for (cmd, args) in self.commandList:
             try:
                 self.makeCommand(cmd, args)
-            except:
+            except Exception as e:
                 print(f'Error submitting command {cmd} with params {args}')
+                print(e)
+
+    def getToken(self, userId):
+        """
+        if a token is not saved, create account, login and get token to save
+        """
+        if userId not in self.accessTokens:
+            payload = {'username': userId, 'password': userId, 'email': f'{userId}@gmail.com', 'securityCode': userId}
+            r = requests.post(f'{self.host}/users/sign-up', json=payload)
+
+            # signup successful. Login and get token
+            if r.status_code in [200, 500]:  # TODO fix 500 to new error
+                payload = {'username': userId, 'password': userId}
+                r = requests.post(f'{self.host}/users/login', json=payload)
+                self.accessTokens[userId] = r.json()['access_token']
+
+        return self.accessTokens[userId]
 
     def makeCommand(self, cmd, args):
         print(f'Command: {cmd} Arguments: {args}')
@@ -59,10 +78,12 @@ class WorkloadParser:
     def addRequest(self, args):
         """
         ADD userid,amount --> PUT
-        url: /add
+        url: /accounts/add
         """
-        payload = {'userId': args[0], 'amount': float(args[1])}
-        r = requests.put(f'{self.host}/add', params=payload)
+        access_token = self.getToken(args[0])
+        header_payload = {'authorization': access_token}
+        payload = {'name': args[0], 'balance': float(args[1])}
+        r = requests.post(f'{self.host}/accounts/add', json=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
     def quoteRequest(self, args):
@@ -70,8 +91,10 @@ class WorkloadParser:
         QUOTE userid,StockSymbol --> GET
         url: /quote
         """
+        access_token = self.getToken(args[0])
+        header_payload = {'authorization': access_token}
         payload = {'userId': args[0], 'stockSymbol': args[1]}
-        r = requests.get(f'{self.host}/quote', params=payload)
+        r = requests.get(f'{self.host}/quote', json=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
     def buyRequest(self, args):
@@ -79,8 +102,10 @@ class WorkloadParser:
         BUY userid,StockSymbol,amount --> POST
         url: /buy/create
         """
+        access_token = self.getToken(args[0])
+        header_payload = {'authorization': access_token}
         payload = {'userId': args[0], 'stockSymbol': args[1], 'amount': float(args[2])}
-        r = requests.post(f'{self.host}/buy/create', params=payload)
+        r = requests.post(f'{self.host}/buy/create', json=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
     def commitBuyRequest(self, args):
@@ -88,8 +113,10 @@ class WorkloadParser:
         COMMIT_BUY userid --> POST
         url: /buy/commit
         """
+        access_token = self.getToken(args[0])
+        header_payload = {'authorization': access_token}
         payload = {'userId': args[0]}
-        r = requests.post(f'{self.host}/buy/commit', params=payload)
+        r = requests.post(f'{self.host}/buy/commit', json=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
     def cancelBuyRequest(self, args):
@@ -97,8 +124,10 @@ class WorkloadParser:
         CANCEL_BUY userid --> POST
         url: /buy/cancel
         """
+        access_token = self.getToken(args[0])
+        header_payload = {'authorization': access_token}
         payload = {'userId': args[0]}
-        r = requests.post(f'{self.host}/buy/cancel', params=payload)
+        r = requests.post(f'{self.host}/buy/cancel', json=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
     def sellRequest(self, args):
@@ -106,8 +135,10 @@ class WorkloadParser:
         SELL userid,StockSymbol,amount --> POST
         url: /sell/create
         """
+        access_token = self.getToken(args[0])
+        header_payload = {'authorization': access_token}
         payload = {'userId': args[0], 'stockSymbol': args[1], 'amount': float(args[2])}
-        r = requests.post(f'{self.host}/sell/create', params=payload)
+        r = requests.post(f'{self.host}/sell/create', json=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
     def commitSellRequest(self, args):
@@ -115,8 +146,10 @@ class WorkloadParser:
         COMMIT_SELL userid --> POST
         url: /sell/commit
         """
+        access_token = self.getToken(args[0])
+        header_payload = {'authorization': access_token}
         payload = {'userId': args[0]}
-        r = requests.post(f'{self.host}/sell/commit', params=payload)
+        r = requests.post(f'{self.host}/sell/commit', json=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
     def cancelSellRequest(self, args):
@@ -124,8 +157,10 @@ class WorkloadParser:
         CANCEL_SELL userid --> POST
         url: /sell/cancel
         """
+        access_token = self.getToken(args[0])
+        header_payload = {'authorization': access_token}
         payload = {'userId': args[0]}
-        r = requests.post(f'{self.host}/sell/cancel', params=payload)
+        r = requests.post(f'{self.host}/sell/cancel', json=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
     def setBuyAmountRequest(self, args):
@@ -133,8 +168,10 @@ class WorkloadParser:
         SET_BUY_AMOUNT userid,StockSymbol,amount --> POST
         url: /setBuy/amount
         """
+        access_token = self.getToken(args[0])
+        header_payload = {'authorization': access_token}
         payload = {'userId': args[0], 'stockSymbol': args[1], 'amount': float(args[2])}
-        r = requests.post(f'{self.host}/setBuy/amount', params=payload)
+        r = requests.post(f'{self.host}/setBuy/amount', json=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
     def cancelSetBuyRequest(self, args):
@@ -142,8 +179,10 @@ class WorkloadParser:
         CANCEL_SET_BUY userid,StockSymbol --> POST
         url: /setBuy/cancel
         """
+        access_token = self.getToken(args[0])
+        header_payload = {'authorization': access_token}
         payload = {'userId': args[0], 'stockSymbol': args[1]}
-        r = requests.post(f'{self.host}/setBuy/cancel', params=payload)
+        r = requests.post(f'{self.host}/setBuy/cancel', json=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
     def setBuyTriggerRequest(self, args):
@@ -151,8 +190,10 @@ class WorkloadParser:
         SET_BUY_TRIGGER userid,StockSymbol,amount --> POST
         url: /setBuy/trigger
         """
+        access_token = self.getToken(args[0])
+        header_payload = {'authorization': access_token}
         payload = {'userId': args[0], 'stockSymbol': args[1], 'amount': float(args[2])}
-        r = requests.post(f'{self.host}/setBuy/trigger', params=payload)
+        r = requests.post(f'{self.host}/setBuy/trigger', json=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
     def setSellAmountRequest(self, args):
@@ -160,8 +201,10 @@ class WorkloadParser:
         SET_SELL_AMOUNT userid,StockSymbol,amount --> POST
         url: /setSell/amount
         """
+        access_token = self.getToken(args[0])
+        header_payload = {'authorization': access_token}
         payload = {'userId': args[0], 'stockSymbol': args[1], 'amount': float(args[2])}
-        r = requests.post(f'{self.host}/setSell/amount', params=payload)
+        r = requests.post(f'{self.host}/setSell/amount', json=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
     def setSellTriggerRequest(self, args):
@@ -169,8 +212,10 @@ class WorkloadParser:
         SET_SELL_TRIGGER userid,StockSymbol,amount --> POST
         url: /setSell/trigger
         """
+        access_token = self.getToken(args[0])
+        header_payload = {'authorization': access_token}
         payload = {'userId': args[0], 'stockSymbol': args[1], 'amount': float(args[2])}
-        r = requests.post(f'{self.host}/setSell/trigger', params=payload)
+        r = requests.post(f'{self.host}/setSell/trigger', json=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
     def cancelSetSellRequest(self, args):
@@ -178,22 +223,29 @@ class WorkloadParser:
         CANCEL_SET_SELL userid,StockSymbol --> POST
         url: /setSell/cancel
         """
+        access_token = self.getToken(args[0])
+        header_payload = {'authorization': access_token}
         payload = {'userId': args[0], 'stockSymbol': args[1]}
-        r = requests.post(f'{self.host}/setSell/cancel', params=payload)
+        r = requests.post(f'{self.host}/setSell/cancel', json=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
     def dumplogRequest(self, args):
         """
         TODO: decide how we want to handle the distinction. Right now implementing as userId empty
+        TODO: add authorization for system admin to dump all logs
         DUMPLOG userid,filename --> GET
         DUMPLOG filename --> GET
         url: /dumplog
         """
+
         if len(args) == 1:
+            header_payload = {'authorization': 'sysadmin'}  # TODO: fix
             payload = {'userId': '', 'fileName': args[0]}
         else:
+            access_token = self.getToken(args[0])
+            header_payload = {'authorization': access_token}
             payload = {'userId': args[0], 'fileName': args[1]}
-        r = requests.get(f'{self.host}/dumplog', params=payload)
+        r = requests.get(f'{self.host}/dumplog', json=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
     def displaySummaryRequest(self, args):
@@ -201,8 +253,10 @@ class WorkloadParser:
         DISPLAY_SUMMARY userid --> GET
         url: /displaySummary
         """
+        access_token = self.getToken(args[0])
+        header_payload = {'authorization': access_token}
         payload = {'userId': args[0]}
-        r = requests.get(f'{self.host}/displaySummary', params=payload)
+        r = requests.get(f'{self.host}/displaySummary', json=payload)
         print(f'Response {r.status_code} at url {r.url}')
 
 
