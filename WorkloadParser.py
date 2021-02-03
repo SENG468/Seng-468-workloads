@@ -7,18 +7,18 @@ class WorkloadParser:
     def __init__(self, command_list, ip, port):
         """
         """
-        self.commandList = command_list  # (cmd, args)
+        self.commandList = command_list  # (transId, cmd, args)
         self.ip = ip
         self.port = port
         self.host = f'http://{self.ip}:{self.port}/stock-trade'
         self.accessTokens = {}  # userid: token
 
     def run(self):
-        for (cmd, args) in self.commandList:
+        for (transId, cmd, args) in self.commandList:
             try:
-                self.makeCommand(cmd, args)
+                self.makeCommand(transId, cmd, args)
             except Exception as e:
-                print(f'Error submitting command {cmd} with params {args}')
+                print(f'Error submitting transaction {transId} with command {cmd} and params {args}')
                 print(e)
 
     def getToken(self, userId):
@@ -37,225 +37,210 @@ class WorkloadParser:
 
         return self.accessTokens[userId]
 
-    def makeCommand(self, cmd, args):
-        print(f'Command: {cmd} Arguments: {args}')
+    def makeCommand(self, transId, cmd, args):
+        print(f'Transaction: {transId} Command: {cmd} Arguments: {args}')
 
         if (cmd == 'ADD'):
-            self.addRequest(args)
+            self.addRequest(transId, args)
         elif (cmd == 'QUOTE'):
-            self.quoteRequest(args)
+            self.quoteRequest(transId, args)
         elif (cmd == 'BUY'):
-            self.buyRequest(args)
+            self.buyRequest(transId, args)
         elif (cmd == 'COMMIT_BUY'):
-            self.commitBuyRequest(args)
+            self.commitBuyRequest(transId, args)
         elif (cmd == 'CANCEL_BUY'):
-            self.cancelBuyRequest(args)
+            self.cancelBuyRequest(transId, args)
         elif (cmd == 'SELL'):
-            self.sellRequest(args)
+            self.sellRequest(transId, args)
         elif (cmd == 'COMMIT_SELL'):
-            self.commitSellRequest(args)
+            self.commitSellRequest(transId, args)
         elif (cmd == 'CANCEL_SELL'):
-            self.cancelSellRequest(args)
+            self.cancelSellRequest(transId, args)
         elif (cmd == 'SET_BUY_AMOUNT'):
-            self.setBuyAmountRequest(args)
+            self.setBuyAmountRequest(transId, args)
         elif (cmd == 'CANCEL_SET_BUY'):
-            self.cancelSetBuyRequest(args)
+            self.cancelSetBuyRequest(transId, args)
         elif (cmd == 'SET_BUY_TRIGGER'):
-            self.setBuyTriggerRequest(args)
+            self.setBuyTriggerRequest(transId, args)
         elif (cmd == 'SET_SELL_AMOUNT'):
-            self.setSellAmountRequest(args)
+            self.setSellAmountRequest(transId, args)
         elif (cmd == 'SET_SELL_TRIGGER'):
-            self.setSellTriggerRequest(args)
+            self.setSellTriggerRequest(transId, args)
         elif (cmd == 'CANCEL_SET_SELL'):
-            self.cancelSetSellRequest(args)
+            self.cancelSetSellRequest(transId, args)
         elif (cmd == 'DUMPLOG'):
-            self.dumplogRequest(args)
+            self.dumplogRequest(transId, args)
         elif (cmd == 'DISPLAY_SUMMARY'):
-            self.displaySummaryRequest(args)
+            self.displaySummaryRequest(transId, args)
         else:
             print(f'Invalid user command: {cmd}')
 
-    def addRequest(self, args):
+    def addRequest(self, transId, args):
         """
-        ADD userid,amount --> PUT
-        url: /accounts/add
+        Add the given amount of money to the user's account
         """
         access_token = self.getToken(args[0])
         header_payload = {'authorization': access_token}
-        payload = {'name': args[0], 'balance': float(args[1])}
+        payload = {'id': transId, 'name': args[0], 'balance': float(args[1])}
         r = requests.post(f'{self.host}/accounts/add', json=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
-    def quoteRequest(self, args):
+    def quoteRequest(self, transId, args):
         """
-        QUOTE userid,StockSymbol --> GET
-        url: /quote
+        Get the current quote for the stock for the specified user
         """
         access_token = self.getToken(args[0])
         header_payload = {'authorization': access_token}
-        payload = {'userId': args[0], 'stockSymbol': args[1]}
-        r = requests.get(f'{self.host}/quote', json=payload, headers=header_payload)
+        payload = {'id': transId}
+        r = requests.get(f'{self.host}/quote/{args[1]}', json=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
-    def buyRequest(self, args):
+    def buyRequest(self, transId, args):
         """
-        BUY userid,StockSymbol,amount --> POST
-        url: /buy/create
+        Buy the dollar amount of the stock for the specified user at the current price.
         """
         access_token = self.getToken(args[0])
         header_payload = {'authorization': access_token}
-        payload = {'userId': args[0], 'stockSymbol': args[1], 'amount': float(args[2])}
-        r = requests.post(f'{self.host}/buy/create', json=payload, headers=header_payload)
+        payload = {'id': transId, 'type': 'BUY', 'stockCode': args[1], 'cashAmount': float(args[2])}
+        r = requests.post(f'{self.host}/order/simple', json=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
-    def commitBuyRequest(self, args):
+    def commitBuyRequest(self, transId, args):
         """
-        COMMIT_BUY userid --> POST
-        url: /buy/commit
+        Commits the most recently executed BUY command
         """
         access_token = self.getToken(args[0])
         header_payload = {'authorization': access_token}
-        payload = {'userId': args[0]}
+        payload = {'id': transId}
         r = requests.post(f'{self.host}/buy/commit', json=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
-    def cancelBuyRequest(self, args):
+    def cancelBuyRequest(self, transId, args):
         """
-        CANCEL_BUY userid --> POST
-        url: /buy/cancel
+        Cancels the most recently executed BUY Command
         """
         access_token = self.getToken(args[0])
         header_payload = {'authorization': access_token}
-        payload = {'userId': args[0]}
+        payload = {'id': transId}
         r = requests.post(f'{self.host}/buy/cancel', json=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
-    def sellRequest(self, args):
+    def sellRequest(self, transId, args):
         """
-        SELL userid,StockSymbol,amount --> POST
-        url: /sell/create
+        Sell the specified dollar mount of the stock currently held by the specified user at the current price.
         """
         access_token = self.getToken(args[0])
         header_payload = {'authorization': access_token}
-        payload = {'userId': args[0], 'stockSymbol': args[1], 'amount': float(args[2])}
-        r = requests.post(f'{self.host}/sell/create', json=payload, headers=header_payload)
+        payload = {'id': transId, 'type': 'SELL', 'stockCode': args[1], 'cashAmount': float(args[2])}
+        r = requests.post(f'{self.host}/order/simple', json=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
-    def commitSellRequest(self, args):
+    def commitSellRequest(self, transId, args):
         """
-        COMMIT_SELL userid --> POST
-        url: /sell/commit
+        Commits the most recently executed SELL command
         """
         access_token = self.getToken(args[0])
         header_payload = {'authorization': access_token}
-        payload = {'userId': args[0]}
+        payload = {'id': transId}
         r = requests.post(f'{self.host}/sell/commit', json=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
-    def cancelSellRequest(self, args):
+    def cancelSellRequest(self, transId, args):
         """
-        CANCEL_SELL userid --> POST
-        url: /sell/cancel
+        Cancels the most recently executed SELL Command
         """
         access_token = self.getToken(args[0])
         header_payload = {'authorization': access_token}
-        payload = {'userId': args[0]}
+        payload = {'id': transId}
         r = requests.post(f'{self.host}/sell/cancel', json=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
-    def setBuyAmountRequest(self, args):
+    def setBuyAmountRequest(self, transId, args):
         """
-        SET_BUY_AMOUNT userid,StockSymbol,amount --> POST
-        url: /setBuy/amount
+        Sets a defined amount of the given stock when the current stock price is less than or equal to the BUY_TRIGGER
         """
         access_token = self.getToken(args[0])
         header_payload = {'authorization': access_token}
-        payload = {'userId': args[0], 'stockSymbol': args[1], 'amount': float(args[2])}
-        r = requests.post(f'{self.host}/setBuy/amount', json=payload, headers=header_payload)
+        payload = {'id': transId, 'type': 'BUY_AT', 'stockCode': args[1], 'stockAmount': float(args[2])}
+        r = requests.post(f'{self.host}/order/limit', json=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
-    def cancelSetBuyRequest(self, args):
+    def cancelSetBuyRequest(self, transId, args):
         """
-        CANCEL_SET_BUY userid,StockSymbol --> POST
-        url: /setBuy/cancel
+        Cancels a SET_BUY command issued for the given stock
         """
         access_token = self.getToken(args[0])
         header_payload = {'authorization': access_token}
-        payload = {'userId': args[0], 'stockSymbol': args[1]}
-        r = requests.post(f'{self.host}/setBuy/cancel', json=payload, headers=header_payload)
+        payload = {'id': transId}
+        r = requests.post(f'{self.host}/setBuy/cancel/{args[1]}', json=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
-    def setBuyTriggerRequest(self, args):
+    def setBuyTriggerRequest(self, transId, args):
         """
-        SET_BUY_TRIGGER userid,StockSymbol,amount --> POST
-        url: /setBuy/trigger
+        Sets the trigger point based on the current stock price when any SET_BUY will execute
         """
         access_token = self.getToken(args[0])
         header_payload = {'authorization': access_token}
-        payload = {'userId': args[0], 'stockSymbol': args[1], 'amount': float(args[2])}
+        payload = {'id': transId, 'type': 'BUY_AT', 'stockCode': args[1], 'unitPrice': float(args[2])}
         r = requests.post(f'{self.host}/setBuy/trigger', json=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
-    def setSellAmountRequest(self, args):
+    def setSellAmountRequest(self, transId, args):
         """
-        SET_SELL_AMOUNT userid,StockSymbol,amount --> POST
-        url: /setSell/amount
+        Sets a defined amount of the specified stock to sell when the current stock price is equal or greater than the sell trigger point
         """
         access_token = self.getToken(args[0])
         header_payload = {'authorization': access_token}
-        payload = {'userId': args[0], 'stockSymbol': args[1], 'amount': float(args[2])}
-        r = requests.post(f'{self.host}/setSell/amount', json=payload, headers=header_payload)
+        payload = {'id': transId, 'type': 'SELL_AT', 'stockCode': args[1], 'stockAmount': float(args[2])}
+        r = requests.post(f'{self.host}/order/limit', json=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
-    def setSellTriggerRequest(self, args):
+    def setSellTriggerRequest(self, transId, args):
         """
-        SET_SELL_TRIGGER userid,StockSymbol,amount --> POST
-        url: /setSell/trigger
+        Sets the stock price trigger point for executing any SET_SELL triggers associated with the given stock and user
         """
         access_token = self.getToken(args[0])
         header_payload = {'authorization': access_token}
-        payload = {'userId': args[0], 'stockSymbol': args[1], 'amount': float(args[2])}
+        payload = {'id': transId, 'type': 'SELL_AT', 'stockCode': args[1], 'unitPrice': float(args[2])}
         r = requests.post(f'{self.host}/setSell/trigger', json=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
-    def cancelSetSellRequest(self, args):
+    def cancelSetSellRequest(self, transId, args):
         """
-        CANCEL_SET_SELL userid,StockSymbol --> POST
-        url: /setSell/cancel
+        Cancels the SET_SELL associated with the given stock and user
         """
         access_token = self.getToken(args[0])
         header_payload = {'authorization': access_token}
-        payload = {'userId': args[0], 'stockSymbol': args[1]}
-        r = requests.post(f'{self.host}/setSell/cancel', json=payload, headers=header_payload)
+        payload = {'id': transId}
+        r = requests.post(f'{self.host}/setSell/cancel/{args[1]}', json=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
-    def dumplogRequest(self, args):
+    def dumplogRequest(self, transId, args):
         """
         TODO: decide how we want to handle the distinction. Right now implementing as userId empty
         TODO: add authorization for system admin to dump all logs
-        DUMPLOG userid,filename --> GET
-        DUMPLOG filename --> GET
-        url: /dumplog
+        (1) Print out the history of the users transactions to the user specified file 
+        or
+        (2) Print out to the specified file the complete set of transactions that have occurred in the system.
         """
 
         if len(args) == 1:
             header_payload = {'authorization': 'sysadmin'}  # TODO: fix
-            payload = {'userId': '', 'fileName': args[0]}
+            payload = {'id': transId, 'userId': '', 'fileName': args[0]}
         else:
             access_token = self.getToken(args[0])
             header_payload = {'authorization': access_token}
-            payload = {'userId': args[0], 'fileName': args[1]}
+            payload = {'id': transId, 'userId': args[0], 'fileName': args[1]}
         r = requests.get(f'{self.host}/dumplog', json=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
-    def displaySummaryRequest(self, args):
+    def displaySummaryRequest(self, transId, args):
         """
-        DISPLAY_SUMMARY userid --> GET
-        url: /displaySummary
+        Provides a summary to the client of the given user's transaction history and the current status of their accounts as well as any set buy or sell triggers and their parameters
         """
         access_token = self.getToken(args[0])
         header_payload = {'authorization': access_token}
-        payload = {'userId': args[0]}
+        payload = {'id': transId, 'userId': args[0]}
         r = requests.get(f'{self.host}/displaySummary', json=payload)
         print(f'Response {r.status_code} at url {r.url}')
 
@@ -267,10 +252,11 @@ def parseWorkloadFile(filename):
             split_line = line.rstrip().split(' ')
             user_command = split_line[1].split(',')
 
+            transId = split_line[0]
             cmd = user_command[0]
             args = user_command[1:]  # all commands have at least 1 param
 
-            command_list.append((cmd, args))
+            command_list.append((transId, cmd, args))
 
     return command_list
 
