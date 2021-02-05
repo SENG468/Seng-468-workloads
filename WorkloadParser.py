@@ -217,22 +217,28 @@ class WorkloadParser:
 
     def dumplogRequest(self, transId, args):
         """
-        TODO: decide how we want to handle the distinction. Right now implementing as userId empty
-        TODO: add authorization for system admin to dump all logs
-        (1) Print out the history of the users transactions to the user specified file 
-        or
-        (2) Print out to the specified file the complete set of transactions that have occurred in the system.
+        (1) Print out to the specified file the complete set of transactions that have occurred in the system (admin privileges needed)
+          or
+        (2) Print out the history of the users transactions to the user specified file
         """
 
-        if len(args) == 1:
-            header_payload = {'authorization': 'sysadmin'}  # TODO: fix
-            payload = {'id': transId, 'userId': '', 'fileName': args[0]}
-        else:
+        if len(args) == 1:  # dumplog for all users. needs admin privileges
+            filename = args[0]
+            header_payload = {'authorization': self.getToken('sysadmin')}  # TODO: determine what the admin credentials will be
+            payload = {'id': transId, 'filename': filename}
+            r = requests.post(f'{self.host}/logs/dumplog', json=payload, headers=header_payload, stream=True)
+        else:  # dumplog for a single user
+            filename = args[1]
             access_token = self.getToken(args[0])
             header_payload = {'authorization': access_token}
-            payload = {'id': transId, 'userId': args[0], 'fileName': args[1]}
-        r = requests.get(f'{self.host}/dumplog', json=payload, headers=header_payload)
+            payload = {'id': transId, 'username': args[0], 'filename': filename}
+            r = requests.post(f'{self.host}/logs/user/dumplog', json=payload, headers=header_payload, stream=True)
         print(f'Response {r.status_code} at url {r.url}')
+
+        if r.status_code == 200:
+            with open(filename, 'wb') as f:
+                for chunk in r.iter_content(1024):
+                    f.write(chunk)
 
     def displaySummaryRequest(self, transId, args):
         """
@@ -252,7 +258,7 @@ def parseWorkloadFile(filename):
             split_line = line.rstrip().split(' ')
             user_command = split_line[1].split(',')
 
-            transId = split_line[0]
+            transId = split_line[0][1:-1]
             cmd = user_command[0]
             args = user_command[1:]  # all commands have at least 1 param
 
