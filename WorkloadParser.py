@@ -81,7 +81,7 @@ class WorkloadParser:
         """
         access_token = self.getToken(args[0])
         header_payload = {'authorization': access_token}
-        payload = {'id': transId, 'name': args[0], 'balance': float(args[1])}
+        payload = {'transactionId': transId, 'name': args[0], 'balance': float(args[1])}
         r = requests.post(f'{self.host}/accounts/add', json=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
@@ -91,7 +91,7 @@ class WorkloadParser:
         """
         access_token = self.getToken(args[0])
         header_payload = {'authorization': access_token}
-        payload = {'id': transId}
+        payload = {'transactionId': transId}
         r = requests.get(f'{self.host}/quote/{args[1]}', json=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
@@ -101,7 +101,7 @@ class WorkloadParser:
         """
         access_token = self.getToken(args[0])
         header_payload = {'authorization': access_token}
-        payload = {'id': transId, 'type': 'BUY', 'stockCode': args[1], 'cashAmount': float(args[2])}
+        payload = {'transactionId': transId, 'type': 'BUY', 'stockCode': args[1], 'cashAmount': float(args[2])}
         r = requests.post(f'{self.host}/order/simple', json=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
@@ -111,7 +111,7 @@ class WorkloadParser:
         """
         access_token = self.getToken(args[0])
         header_payload = {'authorization': access_token}
-        payload = {'id': transId}
+        payload = {'transactionId': transId}
         r = requests.post(f'{self.host}/buy/commit', json=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
@@ -121,7 +121,7 @@ class WorkloadParser:
         """
         access_token = self.getToken(args[0])
         header_payload = {'authorization': access_token}
-        payload = {'id': transId}
+        payload = {'transactionId': transId}
         r = requests.post(f'{self.host}/buy/cancel', json=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
@@ -131,7 +131,7 @@ class WorkloadParser:
         """
         access_token = self.getToken(args[0])
         header_payload = {'authorization': access_token}
-        payload = {'id': transId, 'type': 'SELL', 'stockCode': args[1], 'cashAmount': float(args[2])}
+        payload = {'transactionId': transId, 'type': 'SELL', 'stockCode': args[1], 'cashAmount': float(args[2])}
         r = requests.post(f'{self.host}/order/simple', json=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
@@ -141,7 +141,7 @@ class WorkloadParser:
         """
         access_token = self.getToken(args[0])
         header_payload = {'authorization': access_token}
-        payload = {'id': transId}
+        payload = {'transactionId': transId}
         r = requests.post(f'{self.host}/sell/commit', json=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
@@ -151,7 +151,7 @@ class WorkloadParser:
         """
         access_token = self.getToken(args[0])
         header_payload = {'authorization': access_token}
-        payload = {'id': transId}
+        payload = {'transactionId': transId}
         r = requests.post(f'{self.host}/sell/cancel', json=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
@@ -161,7 +161,7 @@ class WorkloadParser:
         """
         access_token = self.getToken(args[0])
         header_payload = {'authorization': access_token}
-        payload = {'id': transId, 'type': 'BUY_AT', 'stockCode': args[1], 'stockAmount': float(args[2])}
+        payload = {'transactionId': transId, 'type': 'BUY_AT', 'stockCode': args[1], 'stockAmount': float(args[2])}
         r = requests.post(f'{self.host}/order/limit', json=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
@@ -171,7 +171,7 @@ class WorkloadParser:
         """
         access_token = self.getToken(args[0])
         header_payload = {'authorization': access_token}
-        payload = {'id': transId}
+        payload = {'transactionId': transId}
         r = requests.post(f'{self.host}/setBuy/cancel/{args[1]}', json=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
@@ -181,7 +181,7 @@ class WorkloadParser:
         """
         access_token = self.getToken(args[0])
         header_payload = {'authorization': access_token}
-        payload = {'id': transId, 'type': 'BUY_AT', 'stockCode': args[1], 'unitPrice': float(args[2])}
+        payload = {'transactionId': transId, 'type': 'BUY_AT', 'stockCode': args[1], 'unitPrice': float(args[2])}
         r = requests.post(f'{self.host}/setBuy/trigger', json=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
@@ -191,7 +191,7 @@ class WorkloadParser:
         """
         access_token = self.getToken(args[0])
         header_payload = {'authorization': access_token}
-        payload = {'id': transId, 'type': 'SELL_AT', 'stockCode': args[1], 'stockAmount': float(args[2])}
+        payload = {'transactionId': transId, 'type': 'SELL_AT', 'stockCode': args[1], 'stockAmount': float(args[2])}
         r = requests.post(f'{self.host}/order/limit', json=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
@@ -201,7 +201,7 @@ class WorkloadParser:
         """
         access_token = self.getToken(args[0])
         header_payload = {'authorization': access_token}
-        payload = {'id': transId, 'type': 'SELL_AT', 'stockCode': args[1], 'unitPrice': float(args[2])}
+        payload = {'transactionId': transId, 'type': 'SELL_AT', 'stockCode': args[1], 'unitPrice': float(args[2])}
         r = requests.post(f'{self.host}/setSell/trigger', json=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
@@ -211,7 +211,7 @@ class WorkloadParser:
         """
         access_token = self.getToken(args[0])
         header_payload = {'authorization': access_token}
-        payload = {'id': transId}
+        payload = {'transactionId': transId}
         r = requests.post(f'{self.host}/setSell/cancel/{args[1]}', json=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
@@ -225,13 +225,13 @@ class WorkloadParser:
         if len(args) == 1:  # dumplog for all users. needs admin privileges
             filename = args[0]
             header_payload = {'authorization': self.getToken('sysadmin')}  # TODO: determine what the admin credentials will be
-            payload = {'id': transId, 'filename': filename}
+            payload = {'transactionId': transId, 'filename': filename}
             r = requests.post(f'{self.host}/logs/dumplog', json=payload, headers=header_payload, stream=True)
         else:  # dumplog for a single user
             filename = args[1]
             access_token = self.getToken(args[0])
             header_payload = {'authorization': access_token}
-            payload = {'id': transId, 'username': args[0], 'filename': filename}
+            payload = {'transactionId': transId, 'username': args[0], 'filename': filename}
             r = requests.post(f'{self.host}/logs/user/dumplog', json=payload, headers=header_payload, stream=True)
         print(f'Response {r.status_code} at url {r.url}')
 
@@ -246,8 +246,8 @@ class WorkloadParser:
         """
         access_token = self.getToken(args[0])
         header_payload = {'authorization': access_token}
-        payload = {'id': transId, 'userId': args[0]}
-        r = requests.get(f'{self.host}/displaySummary', json=payload)
+        payload = {'transactionId': transId, 'userId': args[0]}
+        r = requests.get(f'{self.host}/accounts/displaySummary', params=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
 
