@@ -225,7 +225,7 @@ class WorkloadParser:
         if len(args) == 1:  # dumplog for all users. needs admin privileges
             filename = args[0]
             header_payload = {'authorization': self.getToken('sysadmin')}  # TODO: determine what the admin credentials will be
-            payload = {'transactionId': transId, 'filename': filename}
+            payload = {'transactionId': transId, 'filename': filename, 'username':''}
             r = requests.post(f'{self.host}/logs/dumplog', json=payload, headers=header_payload, stream=True)
         else:  # dumplog for a single user
             filename = args[1]
