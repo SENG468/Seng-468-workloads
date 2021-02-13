@@ -92,7 +92,7 @@ class WorkloadParser:
         access_token = self.getToken(args[0])
         header_payload = {'authorization': access_token}
         payload = {'transactionId': transId}
-        r = requests.get(f'{self.host}/quote/{args[1]}', json=payload, headers=header_payload)
+        r = requests.get(f'{self.host}/quote/{args[1]}', params=payload, headers=header_payload)
         print(f'Response {r.status_code} at url {r.url}')
 
     def buyRequest(self, transId, args):
