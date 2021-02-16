@@ -268,8 +268,8 @@ def parseWorkloadFile(filename):
             cmd = user_command[0]
             args = user_command[1:]  # all commands have at least 1 param
 
-            if cmd is 'DUMPLOG':
-                if 'DUMPLOG' in useer_commands:
+            if cmd == 'DUMPLOG':
+                if 'DUMPLOG' in user_commands:
                     user_commands['DUMPLOG'].append((transId, cmd, args))
                 else:
                     user_commands['DUMPLOG'] = [(transId, cmd, args)]
@@ -301,7 +301,7 @@ def callWorkloadParser(args):
 
     # one thread per user
     for user in user_commands:
-        if user is 'DUMPLOG':
+        if user == 'DUMPLOG':
             continue
 
         t = threading.Thread(target=runThread, args=(user_commands[user], ip, port,))
@@ -309,6 +309,7 @@ def callWorkloadParser(args):
 
     while threading.active_count() > 1:
         time.sleep(5)
+    time.sleep(10)
 
     # run dumplogs last
     if 'DUMPLOG' in user_commands:
