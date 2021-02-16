@@ -1,6 +1,7 @@
 import sys
 import requests
-import json
+import threading
+import time
 
 
 class WorkloadParser:
@@ -11,7 +12,7 @@ class WorkloadParser:
         self.ip = ip
         self.port = port
         self.host = f'http://{self.ip}:{self.port}/stock-trade'
-        self.accessTokens = {}  # userid: token
+        self.accessToken = None  # userid: token
 
     def run(self):
         for (transId, cmd, args) in self.commandList:
@@ -25,7 +26,7 @@ class WorkloadParser:
         """
         if a token is not saved, create account, login and get token to save
         """
-        if userId not in self.accessTokens:
+        if self.accessToken is None:
             payload = {'username': userId, 'password': userId, 'email': f'{userId}@gmail.com', 'securityCode': userId}
             r = requests.post(f'{self.host}/users/sign-up', json=payload)
 
@@ -33,9 +34,9 @@ class WorkloadParser:
             if r.status_code in [200, 500]:  # TODO fix 500 to new error
                 payload = {'username': userId, 'password': userId}
                 r = requests.post(f'{self.host}/users/login', json=payload)
-                self.accessTokens[userId] = r.json()['access_token']
+                self.accessToken = r.json()['access_token']
 
-        return self.accessTokens[userId]
+        return self.accessToken
 
     def makeCommand(self, transId, cmd, args):
         print(f'Transaction: {transId} Command: {cmd} Arguments: {args}')
@@ -225,7 +226,7 @@ class WorkloadParser:
         if len(args) == 1:  # dumplog for all users. needs admin privileges
             filename = args[0]
             header_payload = {'authorization': self.getToken('sysadmin')}  # TODO: determine what the admin credentials will be
-            payload = {'transactionId': transId, 'filename': filename, 'username':''}
+            payload = {'transactionId': transId, 'filename': filename, 'username': ''}
             r = requests.post(f'{self.host}/logs/dumplog', json=payload, headers=header_payload, stream=True)
         else:  # dumplog for a single user
             filename = args[1]
@@ -252,7 +253,12 @@ class WorkloadParser:
 
 
 def parseWorkloadFile(filename):
-    command_list = []
+    """
+    Return a dictionary where keys are the userIds and the value is the (transactionId, command, arguments) for each command for the user.
+    DUMPLOG commands are separated and under the key 'DUMPLOG' so they can be run at the end
+    """
+
+    user_commands = {}
     with open(filename, 'r') as f:
         for line in f:
             split_line = line.rstrip().split(' ')
@@ -262,16 +268,26 @@ def parseWorkloadFile(filename):
             cmd = user_command[0]
             args = user_command[1:]  # all commands have at least 1 param
 
-            command_list.append((transId, cmd, args))
+            if cmd == 'DUMPLOG':
+                if 'DUMPLOG' in user_commands:
+                    user_commands['DUMPLOG'].append((transId, cmd, args))
+                else:
+                    user_commands['DUMPLOG'] = [(transId, cmd, args)]
+            else:
+                if args[0] in user_commands:
+                    user_commands[args[0]].append((transId, cmd, args))
+                else:
+                    user_commands[args[0]] = [(transId, cmd, args)]
 
-    return command_list
+    return user_commands
+
+
+def runThread(user_commands, ip, port):
+    parser = WorkloadParser(user_commands, ip, port)
+    parser.run()
 
 
 def callWorkloadParser(args):
-    """
-    TODO: implement multithreading, error handling
-    """
-
     if len(args) < 4:
         print(f'Please provide an input file, ip address and port')
         return
@@ -280,10 +296,24 @@ def callWorkloadParser(args):
     ip = args[2]
     port = args[3]
 
-    command_list = parseWorkloadFile(filename)
+    # user_commands  will be a dict of the commands with the key being the user name
+    user_commands = parseWorkloadFile(filename)
 
-    parser = WorkloadParser(command_list, ip, port)
-    parser.run()
+    # one thread per user
+    for user in user_commands:
+        if user == 'DUMPLOG':
+            continue
+
+        t = threading.Thread(target=runThread, args=(user_commands[user], ip, port,))
+        t.start()
+
+    while threading.active_count() > 1:
+        time.sleep(5)
+    time.sleep(10)
+
+    # run dumplogs last
+    if 'DUMPLOG' in user_commands:
+        runThread(user_commands['DUMPLOG'], ip, port)
 
 
 if __name__ == '__main__':
