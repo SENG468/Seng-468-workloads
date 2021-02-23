@@ -309,10 +309,15 @@ def callWorkloadParser(args):
 
     while threading.active_count() > 1:
         time.sleep(5)
-    time.sleep(10)
+    time.sleep(5)
 
     # run dumplogs last
     if 'DUMPLOG' in user_commands:
+        # append the number of users to each log file name
+        num_users = len(user_commands.keys()) - 1
+        for (transId, cmd, args) in user_commands['DUMPLOG']:
+            args[-1] = f'{args[-1]}_{num_users}Users'
+
         runThread(user_commands['DUMPLOG'], ip, port)
 
 
