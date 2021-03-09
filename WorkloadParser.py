@@ -3,6 +3,10 @@ import requests
 import threading
 import time
 
+'''
+Usage: python3 WorkloadParser.py <workloadfile> <port> <host 1> <host 2> ... <host n>
+'''
+
 
 class WorkloadParser:
     def __init__(self, command_list, ip, port):
@@ -293,19 +297,25 @@ def callWorkloadParser(args):
         return
 
     filename = args[1]
-    ip = args[2]
-    port = args[3]
+    port = args[2]
+    ips = args[3:]
 
     # user_commands  will be a dict of the commands with the key being the user name
     user_commands = parseWorkloadFile(filename)
 
     # one thread per user
+    user_threads = []
     for user in user_commands:
         if user == 'DUMPLOG':
             continue
 
+        ip = ips[len(user_threads) % len(ips)]
+        print(f'user {user} assigned host {ip}')
+
         t = threading.Thread(target=runThread, args=(user_commands[user], ip, port,))
-        t.start()
+        user_threads.append(t)
+
+    [t.start() for t in user_threads]
 
     while threading.active_count() > 1:
         time.sleep(5)
@@ -318,7 +328,7 @@ def callWorkloadParser(args):
         for (transId, cmd, args) in user_commands['DUMPLOG']:
             args[-1] = f'{args[-1]}_{num_users}Users'
 
-        runThread(user_commands['DUMPLOG'], ip, port)
+        runThread(user_commands['DUMPLOG'], ips[0], port)
 
 
 if __name__ == '__main__':
