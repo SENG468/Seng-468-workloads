@@ -49,40 +49,40 @@ class WorkloadParser:
         if self.debug:
             print(f'Transaction: {transId} Command: {cmd} Arguments: {args}')
 
-        # if (cmd == 'ADD'):
-        #     self.addRequest(transId, args)
-        # elif (cmd == 'QUOTE'):
-        #     self.quoteRequest(transId, args)
-        # elif (cmd == 'BUY'):
-        #     self.buyRequest(transId, args)
-        # elif (cmd == 'COMMIT_BUY'):
-        #     self.commitBuyRequest(transId, args)
-        # elif (cmd == 'CANCEL_BUY'):
-        #     self.cancelBuyRequest(transId, args)
-        # elif (cmd == 'SELL'):
-        #     self.sellRequest(transId, args)
-        # elif (cmd == 'COMMIT_SELL'):
-        #     self.commitSellRequest(transId, args)
-        # elif (cmd == 'CANCEL_SELL'):
-        #     self.cancelSellRequest(transId, args)
-        # elif (cmd == 'SET_BUY_AMOUNT'):
-        #     self.setBuyAmountRequest(transId, args)
-        # elif (cmd == 'CANCEL_SET_BUY'):
-        #     self.cancelSetBuyRequest(transId, args)
-        # elif (cmd == 'SET_BUY_TRIGGER'):
-        #     self.setBuyTriggerRequest(transId, args)
-        # elif (cmd == 'SET_SELL_AMOUNT'):
-        #     self.setSellAmountRequest(transId, args)
-        # elif (cmd == 'SET_SELL_TRIGGER'):
-        #     self.setSellTriggerRequest(transId, args)
-        # elif (cmd == 'CANCEL_SET_SELL'):
-        #     self.cancelSetSellRequest(transId, args)
-        # elif (cmd == 'DUMPLOG'):
-        #     self.dumplogRequest(transId, args)
-        # elif (cmd == 'DISPLAY_SUMMARY'):
-        #     self.displaySummaryRequest(transId, args)
-        # else:
-        #     print(f'Invalid user command: {cmd}')
+        if (cmd == 'ADD'):
+            self.addRequest(transId, args)
+        elif (cmd == 'QUOTE'):
+            self.quoteRequest(transId, args)
+        elif (cmd == 'BUY'):
+            self.buyRequest(transId, args)
+        elif (cmd == 'COMMIT_BUY'):
+            self.commitBuyRequest(transId, args)
+        elif (cmd == 'CANCEL_BUY'):
+            self.cancelBuyRequest(transId, args)
+        elif (cmd == 'SELL'):
+            self.sellRequest(transId, args)
+        elif (cmd == 'COMMIT_SELL'):
+            self.commitSellRequest(transId, args)
+        elif (cmd == 'CANCEL_SELL'):
+            self.cancelSellRequest(transId, args)
+        elif (cmd == 'SET_BUY_AMOUNT'):
+            self.setBuyAmountRequest(transId, args)
+        elif (cmd == 'CANCEL_SET_BUY'):
+            self.cancelSetBuyRequest(transId, args)
+        elif (cmd == 'SET_BUY_TRIGGER'):
+            self.setBuyTriggerRequest(transId, args)
+        elif (cmd == 'SET_SELL_AMOUNT'):
+            self.setSellAmountRequest(transId, args)
+        elif (cmd == 'SET_SELL_TRIGGER'):
+            self.setSellTriggerRequest(transId, args)
+        elif (cmd == 'CANCEL_SET_SELL'):
+            self.cancelSetSellRequest(transId, args)
+        elif (cmd == 'DUMPLOG'):
+            self.dumplogRequest(transId, args)
+        elif (cmd == 'DISPLAY_SUMMARY'):
+            self.displaySummaryRequest(transId, args)
+        else:
+            print(f'Invalid user command: {cmd}')
 
     def addRequest(self, transId, args):
         """
