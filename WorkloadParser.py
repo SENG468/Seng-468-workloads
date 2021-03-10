@@ -4,12 +4,14 @@ import threading
 import time
 
 '''
-Usage: python3 WorkloadParser.py <workloadfile> <port> <host 1> <host 2> ... <host n>
+Usage: python3 WorkloadParser.py <workloadfile> <true or false (control debug statements)> <port> <host 1> <host 2> ... <host n>
+
+Tip: Order the hosts by descending amounts of RAM
 '''
 
 
 class WorkloadParser:
-    def __init__(self, command_list, ip, port):
+    def __init__(self, command_list, ip, port, debug):
         """
         """
         self.commandList = command_list  # (transId, cmd, args)
@@ -17,6 +19,7 @@ class WorkloadParser:
         self.port = port
         self.host = f'http://{self.ip}:{self.port}/stock-trade'
         self.accessToken = None  # userid: token
+        self.debug = debug
 
     def run(self):
         for (transId, cmd, args) in self.commandList:
@@ -43,42 +46,43 @@ class WorkloadParser:
         return self.accessToken
 
     def makeCommand(self, transId, cmd, args):
-        print(f'Transaction: {transId} Command: {cmd} Arguments: {args}')
+        if self.debug:
+            print(f'Transaction: {transId} Command: {cmd} Arguments: {args}')
 
-        if (cmd == 'ADD'):
-            self.addRequest(transId, args)
-        elif (cmd == 'QUOTE'):
-            self.quoteRequest(transId, args)
-        elif (cmd == 'BUY'):
-            self.buyRequest(transId, args)
-        elif (cmd == 'COMMIT_BUY'):
-            self.commitBuyRequest(transId, args)
-        elif (cmd == 'CANCEL_BUY'):
-            self.cancelBuyRequest(transId, args)
-        elif (cmd == 'SELL'):
-            self.sellRequest(transId, args)
-        elif (cmd == 'COMMIT_SELL'):
-            self.commitSellRequest(transId, args)
-        elif (cmd == 'CANCEL_SELL'):
-            self.cancelSellRequest(transId, args)
-        elif (cmd == 'SET_BUY_AMOUNT'):
-            self.setBuyAmountRequest(transId, args)
-        elif (cmd == 'CANCEL_SET_BUY'):
-            self.cancelSetBuyRequest(transId, args)
-        elif (cmd == 'SET_BUY_TRIGGER'):
-            self.setBuyTriggerRequest(transId, args)
-        elif (cmd == 'SET_SELL_AMOUNT'):
-            self.setSellAmountRequest(transId, args)
-        elif (cmd == 'SET_SELL_TRIGGER'):
-            self.setSellTriggerRequest(transId, args)
-        elif (cmd == 'CANCEL_SET_SELL'):
-            self.cancelSetSellRequest(transId, args)
-        elif (cmd == 'DUMPLOG'):
-            self.dumplogRequest(transId, args)
-        elif (cmd == 'DISPLAY_SUMMARY'):
-            self.displaySummaryRequest(transId, args)
-        else:
-            print(f'Invalid user command: {cmd}')
+        # if (cmd == 'ADD'):
+        #     self.addRequest(transId, args)
+        # elif (cmd == 'QUOTE'):
+        #     self.quoteRequest(transId, args)
+        # elif (cmd == 'BUY'):
+        #     self.buyRequest(transId, args)
+        # elif (cmd == 'COMMIT_BUY'):
+        #     self.commitBuyRequest(transId, args)
+        # elif (cmd == 'CANCEL_BUY'):
+        #     self.cancelBuyRequest(transId, args)
+        # elif (cmd == 'SELL'):
+        #     self.sellRequest(transId, args)
+        # elif (cmd == 'COMMIT_SELL'):
+        #     self.commitSellRequest(transId, args)
+        # elif (cmd == 'CANCEL_SELL'):
+        #     self.cancelSellRequest(transId, args)
+        # elif (cmd == 'SET_BUY_AMOUNT'):
+        #     self.setBuyAmountRequest(transId, args)
+        # elif (cmd == 'CANCEL_SET_BUY'):
+        #     self.cancelSetBuyRequest(transId, args)
+        # elif (cmd == 'SET_BUY_TRIGGER'):
+        #     self.setBuyTriggerRequest(transId, args)
+        # elif (cmd == 'SET_SELL_AMOUNT'):
+        #     self.setSellAmountRequest(transId, args)
+        # elif (cmd == 'SET_SELL_TRIGGER'):
+        #     self.setSellTriggerRequest(transId, args)
+        # elif (cmd == 'CANCEL_SET_SELL'):
+        #     self.cancelSetSellRequest(transId, args)
+        # elif (cmd == 'DUMPLOG'):
+        #     self.dumplogRequest(transId, args)
+        # elif (cmd == 'DISPLAY_SUMMARY'):
+        #     self.displaySummaryRequest(transId, args)
+        # else:
+        #     print(f'Invalid user command: {cmd}')
 
     def addRequest(self, transId, args):
         """
@@ -88,7 +92,8 @@ class WorkloadParser:
         header_payload = {'authorization': access_token}
         payload = {'transactionId': transId, 'name': args[0], 'balance': float(args[1])}
         r = requests.post(f'{self.host}/accounts/add', json=payload, headers=header_payload)
-        print(f'Response {r.status_code} at url {r.url}')
+        if self.debug:
+            print(f'Response {r.status_code} at url {r.url}')
 
     def quoteRequest(self, transId, args):
         """
@@ -98,7 +103,8 @@ class WorkloadParser:
         header_payload = {'authorization': access_token}
         payload = {'transactionId': transId}
         r = requests.get(f'{self.host}/quote/{args[1]}', params=payload, headers=header_payload)
-        print(f'Response {r.status_code} at url {r.url}')
+        if self.debug:
+            print(f'Response {r.status_code} at url {r.url}')
 
     def buyRequest(self, transId, args):
         """
@@ -108,7 +114,8 @@ class WorkloadParser:
         header_payload = {'authorization': access_token}
         payload = {'transactionId': transId, 'type': 'BUY', 'stockCode': args[1], 'cashAmount': float(args[2])}
         r = requests.post(f'{self.host}/order/simple', json=payload, headers=header_payload)
-        print(f'Response {r.status_code} at url {r.url}')
+        if self.debug:
+            print(f'Response {r.status_code} at url {r.url}')
 
     def commitBuyRequest(self, transId, args):
         """
@@ -118,7 +125,8 @@ class WorkloadParser:
         header_payload = {'authorization': access_token}
         payload = {'transactionId': transId}
         r = requests.post(f'{self.host}/buy/commit', json=payload, headers=header_payload)
-        print(f'Response {r.status_code} at url {r.url}')
+        if self.debug:
+            print(f'Response {r.status_code} at url {r.url}')
 
     def cancelBuyRequest(self, transId, args):
         """
@@ -128,7 +136,8 @@ class WorkloadParser:
         header_payload = {'authorization': access_token}
         payload = {'transactionId': transId}
         r = requests.post(f'{self.host}/buy/cancel', json=payload, headers=header_payload)
-        print(f'Response {r.status_code} at url {r.url}')
+        if self.debug:
+            print(f'Response {r.status_code} at url {r.url}')
 
     def sellRequest(self, transId, args):
         """
@@ -138,7 +147,8 @@ class WorkloadParser:
         header_payload = {'authorization': access_token}
         payload = {'transactionId': transId, 'type': 'SELL', 'stockCode': args[1], 'cashAmount': float(args[2])}
         r = requests.post(f'{self.host}/order/simple', json=payload, headers=header_payload)
-        print(f'Response {r.status_code} at url {r.url}')
+        if self.debug:
+            print(f'Response {r.status_code} at url {r.url}')
 
     def commitSellRequest(self, transId, args):
         """
@@ -148,7 +158,8 @@ class WorkloadParser:
         header_payload = {'authorization': access_token}
         payload = {'transactionId': transId}
         r = requests.post(f'{self.host}/sell/commit', json=payload, headers=header_payload)
-        print(f'Response {r.status_code} at url {r.url}')
+        if self.debug:
+            print(f'Response {r.status_code} at url {r.url}')
 
     def cancelSellRequest(self, transId, args):
         """
@@ -158,7 +169,8 @@ class WorkloadParser:
         header_payload = {'authorization': access_token}
         payload = {'transactionId': transId}
         r = requests.post(f'{self.host}/sell/cancel', json=payload, headers=header_payload)
-        print(f'Response {r.status_code} at url {r.url}')
+        if self.debug:
+            print(f'Response {r.status_code} at url {r.url}')
 
     def setBuyAmountRequest(self, transId, args):
         """
@@ -168,7 +180,8 @@ class WorkloadParser:
         header_payload = {'authorization': access_token}
         payload = {'transactionId': transId, 'type': 'BUY_AT', 'stockCode': args[1], 'stockAmount': float(args[2])}
         r = requests.post(f'{self.host}/order/limit', json=payload, headers=header_payload)
-        print(f'Response {r.status_code} at url {r.url}')
+        if self.debug:
+            print(f'Response {r.status_code} at url {r.url}')
 
     def cancelSetBuyRequest(self, transId, args):
         """
@@ -178,7 +191,8 @@ class WorkloadParser:
         header_payload = {'authorization': access_token}
         payload = {'transactionId': transId}
         r = requests.post(f'{self.host}/setBuy/cancel/{args[1]}', json=payload, headers=header_payload)
-        print(f'Response {r.status_code} at url {r.url}')
+        if self.debug:
+            print(f'Response {r.status_code} at url {r.url}')
 
     def setBuyTriggerRequest(self, transId, args):
         """
@@ -188,7 +202,8 @@ class WorkloadParser:
         header_payload = {'authorization': access_token}
         payload = {'transactionId': transId, 'type': 'BUY_AT', 'stockCode': args[1], 'unitPrice': float(args[2])}
         r = requests.post(f'{self.host}/setBuy/trigger', json=payload, headers=header_payload)
-        print(f'Response {r.status_code} at url {r.url}')
+        if self.debug:
+            print(f'Response {r.status_code} at url {r.url}')
 
     def setSellAmountRequest(self, transId, args):
         """
@@ -198,7 +213,8 @@ class WorkloadParser:
         header_payload = {'authorization': access_token}
         payload = {'transactionId': transId, 'type': 'SELL_AT', 'stockCode': args[1], 'stockAmount': float(args[2])}
         r = requests.post(f'{self.host}/order/limit', json=payload, headers=header_payload)
-        print(f'Response {r.status_code} at url {r.url}')
+        if self.debug:
+            print(f'Response {r.status_code} at url {r.url}')
 
     def setSellTriggerRequest(self, transId, args):
         """
@@ -208,7 +224,8 @@ class WorkloadParser:
         header_payload = {'authorization': access_token}
         payload = {'transactionId': transId, 'type': 'SELL_AT', 'stockCode': args[1], 'unitPrice': float(args[2])}
         r = requests.post(f'{self.host}/setSell/trigger', json=payload, headers=header_payload)
-        print(f'Response {r.status_code} at url {r.url}')
+        if self.debug:
+            print(f'Response {r.status_code} at url {r.url}')
 
     def cancelSetSellRequest(self, transId, args):
         """
@@ -218,7 +235,8 @@ class WorkloadParser:
         header_payload = {'authorization': access_token}
         payload = {'transactionId': transId}
         r = requests.post(f'{self.host}/setSell/cancel/{args[1]}', json=payload, headers=header_payload)
-        print(f'Response {r.status_code} at url {r.url}')
+        if self.debug:
+            print(f'Response {r.status_code} at url {r.url}')
 
     def dumplogRequest(self, transId, args):
         """
@@ -238,12 +256,14 @@ class WorkloadParser:
             header_payload = {'authorization': access_token}
             payload = {'transactionId': transId, 'username': args[0], 'filename': filename}
             r = requests.post(f'{self.host}/logs/user/dumplog', json=payload, headers=header_payload, stream=True)
-        print(f'Response {r.status_code} at url {r.url}')
+        if self.debug:
+            print(f'Response {r.status_code} at url {r.url}')
 
         if r.status_code == 200:
             with open(filename, 'wb') as f:
                 for chunk in r.iter_content(1024):
                     f.write(chunk)
+            print(f'Successfully created dumplog file {filename}')
 
     def displaySummaryRequest(self, transId, args):
         """
@@ -253,7 +273,8 @@ class WorkloadParser:
         header_payload = {'authorization': access_token}
         payload = {'transactionId': transId, 'userId': args[0]}
         r = requests.get(f'{self.host}/accounts/displaySummary', params=payload, headers=header_payload)
-        print(f'Response {r.status_code} at url {r.url}')
+        if self.debug:
+            print(f'Response {r.status_code} at url {r.url}')
 
 
 def parseWorkloadFile(filename):
@@ -286,8 +307,8 @@ def parseWorkloadFile(filename):
     return user_commands
 
 
-def runThread(user_commands, ip, port):
-    parser = WorkloadParser(user_commands, ip, port)
+def runThread(user_commands, ip, port, debug):
+    parser = WorkloadParser(user_commands, ip, port, debug)
     parser.run()
 
 
@@ -297,8 +318,9 @@ def callWorkloadParser(args):
         return
 
     filename = args[1]
-    port = args[2]
-    ips = args[3:]
+    debug = args[2].lower() == 'true'
+    port = args[3]
+    ips = args[4:]
 
     # user_commands  will be a dict of the commands with the key being the user name
     user_commands = parseWorkloadFile(filename)
@@ -312,7 +334,7 @@ def callWorkloadParser(args):
         ip = ips[len(user_threads) % len(ips)]
         print(f'user {user} assigned host {ip}')
 
-        t = threading.Thread(target=runThread, args=(user_commands[user], ip, port,))
+        t = threading.Thread(target=runThread, args=(user_commands[user], ip, port, debug,))
         user_threads.append(t)
 
     [t.start() for t in user_threads]
@@ -321,6 +343,8 @@ def callWorkloadParser(args):
         time.sleep(5)
     time.sleep(5)
 
+    print('Finished all user commands. Running dumplogs...')
+
     # run dumplogs last
     if 'DUMPLOG' in user_commands:
         # append the number of users to each log file name
@@ -328,7 +352,9 @@ def callWorkloadParser(args):
         for (transId, cmd, args) in user_commands['DUMPLOG']:
             args[-1] = f'{args[-1]}_{num_users}Users'
 
-        runThread(user_commands['DUMPLOG'], ips[0], port)
+        runThread(user_commands['DUMPLOG'], ips[0], port, debug)
+
+    print('Done.')
 
 
 if __name__ == '__main__':
