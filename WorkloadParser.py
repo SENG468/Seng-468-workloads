@@ -90,7 +90,11 @@ class WorkloadParser:
         """
         access_token = self.getToken(args[0])
         header_payload = {'authorization': access_token}
-        payload = {'transactionId': transId, 'name': args[0], 'balance': float(args[1])}
+        payload = {'transactionId': transId, 'name': args[0]}
+        if not args[1]:
+            payload['balance'] = ''
+        else:
+            payload['balance'] = float(args[1])
         r = requests.post(f'{self.host}/accounts/add', json=payload, headers=header_payload)
         if self.debug:
             print(f'Response {r.status_code} at url {r.url}')
@@ -112,7 +116,11 @@ class WorkloadParser:
         """
         access_token = self.getToken(args[0])
         header_payload = {'authorization': access_token}
-        payload = {'transactionId': transId, 'type': 'BUY', 'stockCode': args[1], 'cashAmount': float(args[2])}
+        payload = {'transactionId': transId, 'type': 'BUY', 'stockCode': args[1]}
+        if not args[2]:
+            payload['cashAmount'] = ''
+        else:
+            payload['cashAmount'] = float(args[2])
         r = requests.post(f'{self.host}/order/simple', json=payload, headers=header_payload)
         if self.debug:
             print(f'Response {r.status_code} at url {r.url}')
@@ -145,7 +153,11 @@ class WorkloadParser:
         """
         access_token = self.getToken(args[0])
         header_payload = {'authorization': access_token}
-        payload = {'transactionId': transId, 'type': 'SELL', 'stockCode': args[1], 'cashAmount': float(args[2])}
+        payload = {'transactionId': transId, 'type': 'SELL', 'stockCode': args[1]}
+        if not args[2]:
+            payload['cashAmount'] = ''
+        else:
+            payload['cashAmount'] = float(args[2])
         r = requests.post(f'{self.host}/order/simple', json=payload, headers=header_payload)
         if self.debug:
             print(f'Response {r.status_code} at url {r.url}')
@@ -178,7 +190,11 @@ class WorkloadParser:
         """
         access_token = self.getToken(args[0])
         header_payload = {'authorization': access_token}
-        payload = {'transactionId': transId, 'type': 'BUY_AT', 'stockCode': args[1], 'stockAmount': float(args[2])}
+        payload = {'transactionId': transId, 'type': 'BUY_AT', 'stockCode': args[1]}
+        if not args[2]:
+            payload['stockAmount'] = ''
+        else:
+            payload['stockAmount'] = float(args[2])
         r = requests.post(f'{self.host}/order/limit', json=payload, headers=header_payload)
         if self.debug:
             print(f'Response {r.status_code} at url {r.url}')
@@ -200,7 +216,11 @@ class WorkloadParser:
         """
         access_token = self.getToken(args[0])
         header_payload = {'authorization': access_token}
-        payload = {'transactionId': transId, 'type': 'BUY_AT', 'stockCode': args[1], 'unitPrice': float(args[2])}
+        payload = {'transactionId': transId, 'type': 'BUY_AT', 'stockCode': args[1]}
+        if not args[2]:
+            payload['unitPrice'] = ''
+        else:
+            payload['unitPrice'] = float(args[2])
         r = requests.post(f'{self.host}/setBuy/trigger', json=payload, headers=header_payload)
         if self.debug:
             print(f'Response {r.status_code} at url {r.url}')
@@ -211,7 +231,11 @@ class WorkloadParser:
         """
         access_token = self.getToken(args[0])
         header_payload = {'authorization': access_token}
-        payload = {'transactionId': transId, 'type': 'SELL_AT', 'stockCode': args[1], 'stockAmount': float(args[2])}
+        payload = {'transactionId': transId, 'type': 'SELL_AT', 'stockCode': args[1]}
+        if not args[2]:
+            payload['stockAmount'] = ''
+        else:
+            payload['stockAmount'] = float(args[2])
         r = requests.post(f'{self.host}/order/limit', json=payload, headers=header_payload)
         if self.debug:
             print(f'Response {r.status_code} at url {r.url}')
@@ -222,7 +246,11 @@ class WorkloadParser:
         """
         access_token = self.getToken(args[0])
         header_payload = {'authorization': access_token}
-        payload = {'transactionId': transId, 'type': 'SELL_AT', 'stockCode': args[1], 'unitPrice': float(args[2])}
+        payload = {'transactionId': transId, 'type': 'SELL_AT', 'stockCode': args[1]}
+        if not args[2]:
+            payload['unitPrice'] = ''
+        else:
+            payload['unitPrice'] = float(args[2])
         r = requests.post(f'{self.host}/setSell/trigger', json=payload, headers=header_payload)
         if self.debug:
             print(f'Response {r.status_code} at url {r.url}')
