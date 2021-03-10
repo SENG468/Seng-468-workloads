@@ -9,6 +9,9 @@ Usage: python3 WorkloadParser.py <workloadfile> <port> <host 1> <host 2> ... <ho
 Tip: Order the hosts by descending amounts of RAM
 '''
 
+# if debug is true we print the response for each transaction
+debug = False
+
 
 class WorkloadParser:
     def __init__(self, command_list, ip, port):
@@ -45,7 +48,8 @@ class WorkloadParser:
         return self.accessToken
 
     def makeCommand(self, transId, cmd, args):
-        # print(f'Transaction: {transId} Command: {cmd} Arguments: {args}')
+        if debug:
+            print(f'Transaction: {transId} Command: {cmd} Arguments: {args}')
 
         if (cmd == 'ADD'):
             self.addRequest(transId, args)
@@ -90,7 +94,8 @@ class WorkloadParser:
         header_payload = {'authorization': access_token}
         payload = {'transactionId': transId, 'name': args[0], 'balance': float(args[1])}
         r = requests.post(f'{self.host}/accounts/add', json=payload, headers=header_payload)
-        # print(f'Response {r.status_code} at url {r.url}')
+        if debug:
+            print(f'Response {r.status_code} at url {r.url}')
 
     def quoteRequest(self, transId, args):
         """
@@ -100,7 +105,8 @@ class WorkloadParser:
         header_payload = {'authorization': access_token}
         payload = {'transactionId': transId}
         r = requests.get(f'{self.host}/quote/{args[1]}', params=payload, headers=header_payload)
-        # print(f'Response {r.status_code} at url {r.url}')
+        if debug:
+            print(f'Response {r.status_code} at url {r.url}')
 
     def buyRequest(self, transId, args):
         """
@@ -110,7 +116,8 @@ class WorkloadParser:
         header_payload = {'authorization': access_token}
         payload = {'transactionId': transId, 'type': 'BUY', 'stockCode': args[1], 'cashAmount': float(args[2])}
         r = requests.post(f'{self.host}/order/simple', json=payload, headers=header_payload)
-        # print(f'Response {r.status_code} at url {r.url}')
+        if debug:
+            print(f'Response {r.status_code} at url {r.url}')
 
     def commitBuyRequest(self, transId, args):
         """
@@ -120,7 +127,8 @@ class WorkloadParser:
         header_payload = {'authorization': access_token}
         payload = {'transactionId': transId}
         r = requests.post(f'{self.host}/buy/commit', json=payload, headers=header_payload)
-        # print(f'Response {r.status_code} at url {r.url}')
+        if debug:
+            print(f'Response {r.status_code} at url {r.url}')
 
     def cancelBuyRequest(self, transId, args):
         """
@@ -130,7 +138,8 @@ class WorkloadParser:
         header_payload = {'authorization': access_token}
         payload = {'transactionId': transId}
         r = requests.post(f'{self.host}/buy/cancel', json=payload, headers=header_payload)
-        # print(f'Response {r.status_code} at url {r.url}')
+        if debug:
+            print(f'Response {r.status_code} at url {r.url}')
 
     def sellRequest(self, transId, args):
         """
@@ -140,7 +149,8 @@ class WorkloadParser:
         header_payload = {'authorization': access_token}
         payload = {'transactionId': transId, 'type': 'SELL', 'stockCode': args[1], 'cashAmount': float(args[2])}
         r = requests.post(f'{self.host}/order/simple', json=payload, headers=header_payload)
-        # print(f'Response {r.status_code} at url {r.url}')
+        if debug:
+            print(f'Response {r.status_code} at url {r.url}')
 
     def commitSellRequest(self, transId, args):
         """
@@ -150,7 +160,8 @@ class WorkloadParser:
         header_payload = {'authorization': access_token}
         payload = {'transactionId': transId}
         r = requests.post(f'{self.host}/sell/commit', json=payload, headers=header_payload)
-        # print(f'Response {r.status_code} at url {r.url}')
+        if debug:
+            print(f'Response {r.status_code} at url {r.url}')
 
     def cancelSellRequest(self, transId, args):
         """
@@ -160,7 +171,8 @@ class WorkloadParser:
         header_payload = {'authorization': access_token}
         payload = {'transactionId': transId}
         r = requests.post(f'{self.host}/sell/cancel', json=payload, headers=header_payload)
-        # print(f'Response {r.status_code} at url {r.url}')
+        if debug:
+            print(f'Response {r.status_code} at url {r.url}')
 
     def setBuyAmountRequest(self, transId, args):
         """
@@ -170,7 +182,8 @@ class WorkloadParser:
         header_payload = {'authorization': access_token}
         payload = {'transactionId': transId, 'type': 'BUY_AT', 'stockCode': args[1], 'stockAmount': float(args[2])}
         r = requests.post(f'{self.host}/order/limit', json=payload, headers=header_payload)
-        # print(f'Response {r.status_code} at url {r.url}')
+        if debug:
+            print(f'Response {r.status_code} at url {r.url}')
 
     def cancelSetBuyRequest(self, transId, args):
         """
@@ -180,7 +193,8 @@ class WorkloadParser:
         header_payload = {'authorization': access_token}
         payload = {'transactionId': transId}
         r = requests.post(f'{self.host}/setBuy/cancel/{args[1]}', json=payload, headers=header_payload)
-        # print(f'Response {r.status_code} at url {r.url}')
+        if debug:
+            print(f'Response {r.status_code} at url {r.url}')
 
     def setBuyTriggerRequest(self, transId, args):
         """
@@ -190,7 +204,8 @@ class WorkloadParser:
         header_payload = {'authorization': access_token}
         payload = {'transactionId': transId, 'type': 'BUY_AT', 'stockCode': args[1], 'unitPrice': float(args[2])}
         r = requests.post(f'{self.host}/setBuy/trigger', json=payload, headers=header_payload)
-        # print(f'Response {r.status_code} at url {r.url}')
+        if debug:
+            print(f'Response {r.status_code} at url {r.url}')
 
     def setSellAmountRequest(self, transId, args):
         """
@@ -200,7 +215,8 @@ class WorkloadParser:
         header_payload = {'authorization': access_token}
         payload = {'transactionId': transId, 'type': 'SELL_AT', 'stockCode': args[1], 'stockAmount': float(args[2])}
         r = requests.post(f'{self.host}/order/limit', json=payload, headers=header_payload)
-        # print(f'Response {r.status_code} at url {r.url}')
+        if debug:
+            print(f'Response {r.status_code} at url {r.url}')
 
     def setSellTriggerRequest(self, transId, args):
         """
@@ -210,7 +226,8 @@ class WorkloadParser:
         header_payload = {'authorization': access_token}
         payload = {'transactionId': transId, 'type': 'SELL_AT', 'stockCode': args[1], 'unitPrice': float(args[2])}
         r = requests.post(f'{self.host}/setSell/trigger', json=payload, headers=header_payload)
-        # print(f'Response {r.status_code} at url {r.url}')
+        if debug:
+            print(f'Response {r.status_code} at url {r.url}')
 
     def cancelSetSellRequest(self, transId, args):
         """
@@ -220,7 +237,8 @@ class WorkloadParser:
         header_payload = {'authorization': access_token}
         payload = {'transactionId': transId}
         r = requests.post(f'{self.host}/setSell/cancel/{args[1]}', json=payload, headers=header_payload)
-        # print(f'Response {r.status_code} at url {r.url}')
+        if debug:
+            print(f'Response {r.status_code} at url {r.url}')
 
     def dumplogRequest(self, transId, args):
         """
@@ -240,7 +258,8 @@ class WorkloadParser:
             header_payload = {'authorization': access_token}
             payload = {'transactionId': transId, 'username': args[0], 'filename': filename}
             r = requests.post(f'{self.host}/logs/user/dumplog', json=payload, headers=header_payload, stream=True)
-        # print(f'Response {r.status_code} at url {r.url}')
+        if debug:
+            print(f'Response {r.status_code} at url {r.url}')
 
         if r.status_code == 200:
             with open(filename, 'wb') as f:
@@ -256,7 +275,8 @@ class WorkloadParser:
         header_payload = {'authorization': access_token}
         payload = {'transactionId': transId, 'userId': args[0]}
         r = requests.get(f'{self.host}/accounts/displaySummary', params=payload, headers=header_payload)
-        # print(f'Response {r.status_code} at url {r.url}')
+        if debug:
+            print(f'Response {r.status_code} at url {r.url}')
 
 
 def parseWorkloadFile(filename):
