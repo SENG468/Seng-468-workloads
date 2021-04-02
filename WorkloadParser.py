@@ -9,6 +9,9 @@ Usage: python3 WorkloadParser.py <workloadfile> <true or false (control debug st
 Tip: Order the hosts by descending amounts of RAM
 '''
 
+accessTimes = {cmd: [] for cmd in ['ADD', 'QUOTE', 'BUY', 'COMMIT_BUY', 'CANCEL_BUY',
+                                   'SELL', 'COMMIT_SELL', 'CANCEL_SELL', 'SET_BUY_AMOUNT', 'CANCEL_SET_BUY', 'SET_BUY_TRIGGER', 'SET_SELL_AMOUNT', 'SET_SELL_TRIGGER', 'CANCEL_SET_SELL', 'DUMPLOG', 'DISPLAY_SUMMARY']}
+
 
 class WorkloadParser:
     def __init__(self, command_list, ip, port, debug):
@@ -20,6 +23,8 @@ class WorkloadParser:
         self.host = f'http://{self.ip}:{self.port}/stock-trade'
         self.accessToken = None  # userid: token
         self.debug = debug
+        # self.accessTimes = {cmd: [] for cmd in ['ADD', 'QUOTE', 'BUY', 'COMMIT_BUY', 'CANCEL_BUY',
+        #                                         'SELL', 'COMMIT_SELL', 'CANCEL_SELL', 'SET_BUY_AMOUNT', 'CANCEL_SET_BUY', 'SET_BUY_TRIGGER', 'SET_SELL_AMOUNT', 'SET_SELL_TRIGGER', 'CANCEL_SET_SELL', 'DUMPLOG', 'DISPLAY_SUMMARY']}
 
     def run(self):
         for (transId, cmd, args) in self.commandList:
@@ -38,7 +43,7 @@ class WorkloadParser:
             r = requests.post(f'{self.host}/users/sign-up', json=payload)
 
             # signup successful. Login and get token
-            if r.status_code in [200, 500]:  # TODO fix 500 to new error
+            if r.status_code in [200, 400]:  # TODO fix 500 to new error
                 payload = {'username': userId, 'password': userId}
                 r = requests.post(f'{self.host}/users/login', json=payload)
                 self.accessToken = r.json()['access_token']
@@ -99,6 +104,9 @@ class WorkloadParser:
         if self.debug:
             print(f'Response {r.status_code} at url {r.url}')
 
+        global accessTimes
+        accessTimes['ADD'].append(r.elapsed.total_seconds())
+
     def quoteRequest(self, transId, args):
         """
         Get the current quote for the stock for the specified user
@@ -109,6 +117,9 @@ class WorkloadParser:
         r = requests.get(f'{self.host}/quote/{args[1]}', params=payload, headers=header_payload)
         if self.debug:
             print(f'Response {r.status_code} at url {r.url}')
+
+        global accessTimes
+        accessTimes['QUOTE'].append(r.elapsed.total_seconds())
 
     def buyRequest(self, transId, args):
         """
@@ -125,6 +136,9 @@ class WorkloadParser:
         if self.debug:
             print(f'Response {r.status_code} at url {r.url}')
 
+        global accessTimes
+        accessTimes['BUY'].append(r.elapsed.total_seconds())
+
     def commitBuyRequest(self, transId, args):
         """
         Commits the most recently executed BUY command
@@ -136,6 +150,9 @@ class WorkloadParser:
         if self.debug:
             print(f'Response {r.status_code} at url {r.url}')
 
+        global accessTimes
+        accessTimes['COMMIT_BUY'].append(r.elapsed.total_seconds())
+
     def cancelBuyRequest(self, transId, args):
         """
         Cancels the most recently executed BUY Command
@@ -146,6 +163,9 @@ class WorkloadParser:
         r = requests.post(f'{self.host}/buy/cancel', json=payload, headers=header_payload)
         if self.debug:
             print(f'Response {r.status_code} at url {r.url}')
+
+        global accessTimes
+        accessTimes['CANCEL_BUY'].append(r.elapsed.total_seconds())
 
     def sellRequest(self, transId, args):
         """
@@ -162,6 +182,9 @@ class WorkloadParser:
         if self.debug:
             print(f'Response {r.status_code} at url {r.url}')
 
+        global accessTimes
+        accessTimes['SELL'].append(r.elapsed.total_seconds())
+
     def commitSellRequest(self, transId, args):
         """
         Commits the most recently executed SELL command
@@ -173,6 +196,9 @@ class WorkloadParser:
         if self.debug:
             print(f'Response {r.status_code} at url {r.url}')
 
+        global accessTimes
+        accessTimes['COMMIT_SELL'].append(r.elapsed.total_seconds())
+
     def cancelSellRequest(self, transId, args):
         """
         Cancels the most recently executed SELL Command
@@ -183,6 +209,9 @@ class WorkloadParser:
         r = requests.post(f'{self.host}/sell/cancel', json=payload, headers=header_payload)
         if self.debug:
             print(f'Response {r.status_code} at url {r.url}')
+
+        global accessTimes
+        accessTimes['CANCEL_SELL'].append(r.elapsed.total_seconds())
 
     def setBuyAmountRequest(self, transId, args):
         """
@@ -199,6 +228,9 @@ class WorkloadParser:
         if self.debug:
             print(f'Response {r.status_code} at url {r.url}')
 
+        global accessTimes
+        accessTimes['SET_BUY_AMOUNT'].append(r.elapsed.total_seconds())
+
     def cancelSetBuyRequest(self, transId, args):
         """
         Cancels a SET_BUY command issued for the given stock
@@ -209,6 +241,9 @@ class WorkloadParser:
         r = requests.post(f'{self.host}/setBuy/cancel/{args[1]}', json=payload, headers=header_payload)
         if self.debug:
             print(f'Response {r.status_code} at url {r.url}')
+
+        global accessTimes
+        accessTimes['CANCEL_SET_BUY'].append(r.elapsed.total_seconds())
 
     def setBuyTriggerRequest(self, transId, args):
         """
@@ -225,6 +260,9 @@ class WorkloadParser:
         if self.debug:
             print(f'Response {r.status_code} at url {r.url}')
 
+        global accessTimes
+        accessTimes['SET_BUY_TRIGGER'].append(r.elapsed.total_seconds())
+
     def setSellAmountRequest(self, transId, args):
         """
         Sets a defined amount of the specified stock to sell when the current stock price is equal or greater than the sell trigger point
@@ -239,6 +277,9 @@ class WorkloadParser:
         r = requests.post(f'{self.host}/order/limit', json=payload, headers=header_payload)
         if self.debug:
             print(f'Response {r.status_code} at url {r.url}')
+
+        global accessTimes
+        accessTimes['SET_SELL_AMOUNT'].append(r.elapsed.total_seconds())
 
     def setSellTriggerRequest(self, transId, args):
         """
@@ -255,6 +296,9 @@ class WorkloadParser:
         if self.debug:
             print(f'Response {r.status_code} at url {r.url}')
 
+        global accessTimes
+        accessTimes['SET_SELL_TRIGGER'].append(r.elapsed.total_seconds())
+
     def cancelSetSellRequest(self, transId, args):
         """
         Cancels the SET_SELL associated with the given stock and user
@@ -265,6 +309,9 @@ class WorkloadParser:
         r = requests.post(f'{self.host}/setSell/cancel/{args[1]}', json=payload, headers=header_payload)
         if self.debug:
             print(f'Response {r.status_code} at url {r.url}')
+
+        global accessTimes
+        accessTimes['CANCEL_SET_SELL'].append(r.elapsed.total_seconds())
 
     def dumplogRequest(self, transId, args):
         """
@@ -287,6 +334,9 @@ class WorkloadParser:
         if self.debug:
             print(f'Response {r.status_code} at url {r.url}')
 
+        global accessTimes
+        accessTimes['DUMPLOG'].append(r.elapsed.total_seconds())
+
         if r.status_code == 200:
             with open(filename, 'wb') as f:
                 for chunk in r.iter_content(1024):
@@ -303,6 +353,9 @@ class WorkloadParser:
         r = requests.get(f'{self.host}/accounts/displaySummary', params=payload, headers=header_payload)
         if self.debug:
             print(f'Response {r.status_code} at url {r.url}')
+
+        global accessTimes
+        accessTimes['DISPLAY_SUMMARY'].append(r.elapsed.total_seconds())
 
 
 def parseWorkloadFile(filename):
@@ -383,6 +436,9 @@ def callWorkloadParser(args):
         runThread(user_commands['DUMPLOG'], ips[0], port, debug)
 
     print('Done.')
+
+    global accessTimes
+    print(accessTimes)
 
 
 if __name__ == '__main__':
