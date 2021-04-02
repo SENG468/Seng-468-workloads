@@ -438,6 +438,8 @@ def callWorkloadParser(args):
     print('Done.')
 
     global accessTimes
+    for cmd in accessTimes:
+        print(f'{cmd}: {sum(accessTimes[cmd])/len(accessTimes[cmd])}')
     print(accessTimes)
 
 
