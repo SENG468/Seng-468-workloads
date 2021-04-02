@@ -439,7 +439,10 @@ def callWorkloadParser(args):
 
     global accessTimes
     for cmd in accessTimes:
-        print(f'{cmd}: {sum(accessTimes[cmd])/len(accessTimes[cmd])}')
+        if len(accessTimes[cmd]) == 0:
+            print(f'{cmd}: N/A')
+        else:
+            print(f'{cmd}: {sum(accessTimes[cmd])/len(accessTimes[cmd])}')
     print(accessTimes)
 
 
