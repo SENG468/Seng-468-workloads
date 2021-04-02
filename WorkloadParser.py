@@ -443,7 +443,7 @@ def callWorkloadParser(args):
             print(f'{cmd}: N/A')
         else:
             print(f'{cmd}: {sum(accessTimes[cmd])/len(accessTimes[cmd])}')
-    print(accessTimes)
+    # print(accessTimes)
 
 
 if __name__ == '__main__':
